@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaMed | מהפכת התרגום הרפואי</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            green: '#10b981',
+                            teal: '#14b8a6',
+                            blue: '#0ea5e9',
+                            glow: '#34d399'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Assistant', 'sans-serif'],
+                        heading: ['Rubik', 'sans-serif'],
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite animate-parallax', /*אנימציה ארוכה יותר ואפקט פאראלקס*/
+                        'scan': 'scan 2.5s ease-in-out infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
+                        'marquee': 'marquee 25s linear infinite',
+                        'shine': 'shine 1s',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        scan: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(170px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(100%)' },
+                        },
+                        shine: {
+                            '100%': { left: '125%' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Assistant', sans-serif; background-color: #fafafa; overflow-x: hidden; }
+        h1, h2, h3, h4, .font-heading { font-family: 'Rubik', sans-serif; }
+        
+        /* טקסט זוהר */
+        .text-gradient {
+            background: linear-gradient(135deg, #10b981, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* רקע רשת עתידני */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+        }
+
+        /* Glassmorphism משופר */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        /* אפקט הילה עוקב עכבר לכרטיסיות הבנטו */
+        .bento-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(20, 184, 166, 0.15) 0%, transparent 80%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .bento-card:hover::before {
+            opacity: 1;
+        }
+
+        /* אפקט Shine לכפתורים */
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(30deg);
+            transition: none;
+        }
+        .btn-shine:hover::after {
+            animation: shine 1s;
+        }
+
+        /* אפקט מורפינג לטקסט ה-AI */
+        .text-morphing {
+            position: relative;
+        }
+        .text-morphing .source-text {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .text-morphing .target-text {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+        }
+        .text-morphing.scanned .source-text {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        .text-morphing.scanned .target-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* הסתרת פס גלילה בסרט הנע */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-brand-dark antialiased bg-grid relative">
+
+    <div class="fixed inset-0 w-full h-full pointer-events-none z-[-1] overflow-hidden opacity-30 animate-parallax">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-brand-teal rounded-full mix-blend-multiply filter blur-[120px] animate-blob" style="animation-duration: 15s;"></div>
+        <div class="absolute top-[30%] right-[-15%] w-[600px] h-[600px] bg-brand-blue rounded-full mix-blend-multiply filter blur-[150px] animate-blob animation-delay-2000" style="animation-duration: 18s;"></div>
+        <div class="absolute bottom-[-20%] left-[15%] w-[550px] h-[550px] bg-brand-green rounded-full mix-blend-multiply filter blur-[130px] animate-blob animation-delay-4000" style="animation-duration: 20s;"></div>
+    </div>
+
+    <nav class="fixed top-6 left-0 right-0 z-50 px-4">
+        <div class="max-w-6xl mx-auto glass-panel rounded-full px-6 py-3 flex justify-between items-center transition-all duration-300 shadow-lg border-white/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-green to-brand-blue flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)]">L</div>
+                <span class="font-heading font-extrabold text-2xl tracking-tight text-brand-dark hover:text-brand-green transition-colors cursor-pointer">LinguaMed</span>
+            </div>
+            <div>
+                <a href="#demo" class="relative group inline-block">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-brand-green to-brand-blue rounded-full blur opacity-40 group-hover:opacity-75 transition duration-200"></div>
+                    <button class="relative bg-brand-dark text-white px-8 py-2.5 rounded-full font-bold transition-all hover:scale-105 btn-shine">
+                        התחל עכשיו
+                    </button>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="pt-48 pb-32 overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
+            
+            <div class="lg:w-1/2 space-y-8 relative z-10" data-aos="fade-left">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-brand-teal font-semibold text-sm mb-4 border-brand-teal/20 shadow-sm">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-teal opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-teal"></span>
+                    </span>
+                    מנוע ה-AI הרפואי שודרג לגרסה 2.0
+                </div>
+                
+                <h1 class="text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
+                    מידע רפואי,<br>
+                    <span class="text-gradient">סוף סוף מובן.</span>
+                </h1>
+                <p class="text-xl lg:text-2xl text-gray-600 leading-relaxed font-light max-w-2xl Assistant">
+                    LinguaMed מתרגמת, מפשטת ומסבירה מסמכים ושיחות רופא-מטופל בזמן אמת. טכנולוגיה חכמה שמצילה חיים ומגשרת על פערי שפה.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-4">
+                    <button class="bg-gradient-to-r from-brand-green to-brand-teal hover:from-brand-teal hover:to-brand-blue text-white px-10 py-4 rounded-full font-bold text-lg transition-all shadow-[0_10px_30px_rgba(16,185,129,0.3)] hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(16,185,129,0.4)] btn-shine">
+                        בקש הדגמה חיה ➔
+                    </button>
+                </div>
+            </div>
+            
+            <div class="lg:w-1/2 relative w-full max-w-lg mx-auto flex justify-center mt-12 lg:mt-0" data-aos="fade-right" data-aos-delay="200">
+                
+                <div class="relative bg-[#111827] border-[14px] border-[#111827] rounded-[3.5rem] w-[320px] h-[650px] shadow-2xl overflow-hidden animate-float ring-1 ring-white/10 z-10 hover:shadow-brand-green/20 transition-shadow duration-500">
+                    <div class="absolute top-0 inset-x-0 h-7 bg-[#111827] w-32 mx-auto rounded-b-3xl z-50"></div>
+                    
+                    <div class="bg-[#f8fafc] w-full h-full relative overflow-hidden flex flex-col UI-screen">
+                        
+                        <div class="h-44 bg-gradient-to-b from-brand-green/20 to-brand-green/5 relative w-full px-5 pt-12 pb-4 border-b border-brand-green/20">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="space-y-2 w-3/4">
+                                    <div class="h-2 bg-brand-green/20 rounded w-full"></div>
+                                    <div class="h-2 bg-brand-green/20 rounded w-2/3"></div>
+                                </div>
+                                <div class="w-10 h-10 bg-brand-green/10 rounded-xl"></div>
+                            </div>
+                            
+                            <div class="absolute top-0 left-0 right-0 h-[2px] bg-brand-green shadow-[0_0_10px_#10b981] animate-scan z-20 scan-line"></div>
+                        </div>
+
+                        <div class="flex-1 px-5 pt-6 space-y-4 relative Assistant">
+                            <div class="h-2.5 bg-gray-200 rounded-full w-full"></div>
+                            <div class="h-2.5 bg-gray-200 rounded-full w-11/12"></div>
+                            
+                            <div class="mt-6 mb-6 p-4 bg-white rounded-xl shadow-sm border border-gray-100 relative text-morphing scanned">
+                                <div class="absolute -right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-gray-300 rounded-l-md transition-colors scanned-line"></div>
+                                
+                                <p class="text-right text-[15px] font-semibold text-gray-700 leading-snug source-text" dir="rtl">
+                                    הוראות שחרור: <br>
+                                    <span class="text-gray-500 font-normal text-sm">יש ליטול כדור אחד בכל בוקר.</span>
+                                </p>
+                                
+                                <p class="text-center text-[16px] font-medium text-brand-dark target-text" dir="ltr">
+                                    Принимайте по одной таблетке каждое утро.
+                                </p>
+                            </div>
+
+                            <div class="h-2.5 bg-gray-200 rounded-full w-full opacity-60"></div>
+                            <div class="h-2.5 bg-gray-200 rounded-full w-2/3 ml-auto opacity-60"></div>
+                        </div>
+
+                        <div class="absolute bottom-6 left-4 right-4 bg-brand-green p-3 rounded-xl shadow-lg z-30 transition-all scanned-label">
+                            <div class="flex items-center justify-center gap-2" dir="rtl">
+                                <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                                <span class="text-xs font-bold text-white Assistant">תורגם והונגש לרוסית</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute -right-6 md:-right-16 top-32 glass-panel px-5 py-4 rounded-[1.5rem] shadow-xl border border-white/60 flex flex-col items-center gap-3 animate-float z-20" style="animation-delay: 0.5s;">
+                    <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-gray-100">
+                        🎙️
+                    </div>
+                    <span class="text-xs font-bold text-brand-dark Assistant">זיהוי קול</span>
+                </div>
+
+                <div class="absolute -left-6 md:-left-16 bottom-40 glass-panel px-5 py-4 rounded-[1.5rem] shadow-xl border border-white/60 flex flex-col items-center gap-3 animate-float z-20" style="animation-delay: 1.5s;">
+                    <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-pink-100/50">
+                        🧠
+                    </div>
+                    <span class="text-xs font-bold text-brand-dark Assistant">ניתוח הקשר</span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-28 relative z-10 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 Assistant">
+            <div class="text-center max-w-3xl mx-auto mb-24" data-aos="fade-up">
+                <h2 class="text-4xl lg:text-5xl font-extrabold mb-6 Rubik">מנוע אחד. <span class="text-gradient">אינסוף אפשרויות.</span></h2>
+                <p class="text-xl text-gray-600 font-light">LinguaMed משלבת את מודלי השפה המתקדמים ביותר עם ידע קליני רפואי מדויק כדי להעניק ביטחון בכל שלב.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 auto-rows-fr">
+                
+                <div class="md:col-span-2 p-10 rounded-[2.5rem] bento-card glass-panel hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden border border-gray-100" data-aos="fade-up" data-aos-delay="100">
+                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-br from-brand-teal to-brand-green opacity-5 rounded-full blur-3xl group-hover:opacity-15 transition-opacity"></div>
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-8 text-brand-teal border border-gray-50 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-bold mb-5 text-brand-dark Rubik">תרגום מסמכים מהיר</h3>
+                    <p class="text-lg text-gray-600 max-w-md font-light leading-relaxed">סריקה מיידית של סיכומי ביקור, תוצאות מעבדה והמרתם לשפת האם של המטופל תוך שמירה על המבנה המקורי.</p>
+                </div>
+
+                <div class="p-10 rounded-[2.5rem] bento-card glass-panel hover:-translate-y-1 transition-all duration-300 group border border-gray-100" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-8 text-brand-blue border border-gray-50 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-5 text-brand-dark Rubik">פישוט שפה</h3>
+                    <p class="text-gray-600 font-light leading-relaxed">המרת ז'רגון רפואי מסובך (כמו "היפרליפידמיה") להוראות ברורות ("כולסטרול גבוה").</p>
+                </div>
+
+                <div class="p-10 rounded-[2.5rem] bento-card glass-panel hover:-translate-y-1 transition-all duration-300 group border border-gray-100" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-8 text-purple-500 border border-gray-50 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-5 text-brand-dark Rubik">עוזר קולי בזמן אמת</h3>
+                    <p class="text-gray-600 font-light leading-relaxed">בוט תרגום חי המקשיב לשיחה במרפאה ומתרגם אותה דו-כיוונית באופן מיידי.</p>
+                </div>
+
+                <div class="md:col-span-2 p-10 rounded-[2.5rem] bento-card glass-panel hover:-translate-y-1 transition-all duration-300 flex flex-col justify-center items-start overflow-hidden relative border border-gray-100 group" data-aos="fade-up" data-aos-delay="400">
+                    <div class="absolute -left-10 top-1/2 transform -translate-y-1/2 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500 text-brand-dark">
+                        <svg width="220" height="220" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3z"/></svg>
+                    </div>
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-8 text-brand-dark border border-gray-50 group-hover:scale-110 transition-transform relative z-10">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-bold mb-5 text-brand-dark Rubik relative z-10">אבטחה והקשר רפואי</h3>
+                    <p class="text-lg text-gray-600 max-w-lg font-light leading-relaxed relative z-10">הבינה המלאכותית שלנו אומנה על טקסטים קליניים. המערכת תואמת HIPAA/GDPR ומזהה אי-ודאות כדי למנוע טעויות במינון או באבחנה.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 overflow-hidden bg-gray-50/50 border-y border-gray-100 backdrop-blur-sm relative z-10 Assistant">
+        <div class="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 to-transparent z-10"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 to-transparent z-10"></div>
+        
+        <h3 class="text-center text-xs font-bold tracking-widest text-gray-400 uppercase mb-10 Rubik">שפות נתמכות</h3>
+        
+        <div class="flex whitespace-nowrap animate-marquee">
+            <div class="flex items-center gap-12 mx-6">
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">עברית 🇮🇱</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">ENGLISH 🇺🇸</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">РУССКИЙ 🇷🇺</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">العربية 🇸🇦</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">FRANÇAIS 🇫🇷</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">አማርኛ 🇪🇹</span>
+            </div>
+            <div class="flex items-center gap-12 mx-6">
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">עברית 🇮🇱</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">ENGLISH 🇺🇸</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">РУССКИЙ 🇷🇺</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">العربية 🇸🇦</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">FRANÇAIS 🇫🇷</span>
+                <span class="text-4xl font-extrabold text-gray-200 hover:text-brand-teal transition-colors cursor-default">አማרኛ 🇪🇹</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="relative py-36 bg-brand-dark text-white overflow-hidden mt-10 rounded-t-[5rem]">
+        <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-glow to-transparent opacity-50"></div>
+        <div class="absolute -top-60 left-1/2 transform -translate-x-1/2 w-[900px] h-[500px] bg-brand-teal rounded-full filter blur-[160px] opacity-20 pointer-events-none animation-delay-2000 animate-blob"></div>
+        
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 Assistant" data-aos="zoom-in" data-aos-duration="1000">
+            <h2 class="text-5xl lg:text-6xl font-extrabold mb-10 leading-tight Rubik">
+                מוכנים להוביל את<br>
+                <span class="text-gradient">מהפכת התקשורת?</span>
+            </h2>
+            <p class="text-xl text-gray-300 mb-16 max-w-2xl mx-auto font-light leading-relaxed">
+                הצטרפו למרפאות ולבתי החולים המתקדמים שכבר מעניקים למטופלים שלהם ביטחון, הבנה ושקיפות מלאה באמצעות LinguaMed.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <button class="w-full sm:w-auto bg-white text-brand-dark px-12 py-4.5 rounded-full font-bold text-lg hover:bg-gray-100 transition-all hover:scale-105 shadow-[0_0_25px_rgba(255,255,255,0.3)] btn-shine">
+                    התחל פיילוט חינם ➔
+                </button>
+                <button class="w-full sm:w-auto bg-transparent border border-gray-600 hover:border-white hover:bg-white/5 text-white px-12 py-4.5 rounded-full font-bold text-lg transition-all">
+                    קבע פגישת ייעוץ
+                </button>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 right-0">
+            <svg viewBox="0 0 1440 120" class="fill-current text-[#09111f] w-full h-auto">
+                <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
+            </svg>
+        </div>
+    </section>
+
+    <footer class="bg-[#09111f] py-16 text-center text-gray-500 relative z-10 Assistant">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="font-heading font-bold text-2xl text-white flex items-center gap-3 Rubik">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-green to-brand-blue flex items-center justify-center text-white text-base shadow-[0_0_10px_rgba(16,185,129,0.3)]">L</div>
+                LinguaMed
+            </div>
+            <p class="text-sm font-light">© 2026 LinguaMed. פותח בגאווה עבור עתיד רפואי נגיש יותר.</p>
+            <div class="flex gap-8 text-sm font-light">
+                <a href="#" class="hover:text-brand-glow transition-colors">אבטחה</a>
+                <a href="#" class="hover:text-brand-glow transition-colors">פרטיות</a>
+                <a href="#" class="hover:text-brand-glow transition-colors">תנאים</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // אתחול AOS
+        AOS.init({
+            once: true,
+            offset: 60,
+            duration: 900,
+            easing: 'ease-out-cubic',
+        });
+
+        // 1. אפקט מורפינג לטקסט ה-AI (החלפה אוטומטית)
+        const morphingContainer = document.querySelector('.text-morphing');
+        const sourceLine = document.querySelector('.scanned-line');
+        const scannedLabel = document.querySelector('.scanned-label');
+        
+        function runMorphing() {
+            morphingContainer.classList.remove('scanned'); // Reset
+            sourceLine.classList.remove('bg-brand-green');
+            sourceLine.classList.add('bg-gray-300');
+            scannedLabel.classList.add('opacity-0');
+
+            setTimeout(() => {
+                morphingContainer.classList.add('scanned'); // Start transition
+                sourceLine.classList.remove('bg-gray-300');
+                sourceLine.classList.add('bg-brand-green');
+                scannedLabel.classList.remove('opacity-0');
+            }, 3000); // Wait for scan to "pass"
+        }
+
+        runMorphing(); // Initial run
+        setInterval(runMorphing, 6000); // Repeat every 6 seconds
+
+        // 2. אפקט פאראלקס עדין לכתמי הרקע בגלילה
+        window.addEventListener('scroll', function() {
+            const parallaxElement = document.querySelector('.animate-parallax');
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * 0.15;
+            parallaxElement.style.transform = `translateY(${rate}px)`;
+        });
+
+        // 3. אפקט הילה עוקב עכבר לכרטיסיות הבנטו
+        const cards = document.querySelectorAll('.bento-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body>
+</html>
