@@ -1,0 +1,5 @@
+# Ignore original large videos
+סרטונים/*.mp4
+
+# But allow optimized web videos
+!סרטונים/*-web.mp4
